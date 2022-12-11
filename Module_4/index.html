@@ -1,28 +1,56 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Module 4</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-<dialog>
-   <span>&#x2715;</span>
-    <iframe src="" frameborder="0"></iframe>
-</dialog>
-<div id="search-area">
-<h1>Moogle</h1>
-<form action="" id="form">
-<input id="query" name="q" type="text" placeholder="search movie or series">
-<input type="submit" value="Search" id="button">
-</form>
-</div>
-<section id="result"></section>
+const search = document.querySelector("form");
+const showCm = document.querySelector("#shows");
+const dialoog = document.querySelector("dialog");
+const closeM = document.querySelector("#closeModel");
+const titleE = document.querySelector("#modalTitle");
 
-<script src="javascript.js" defer></script>
+closeM.addEventListener("click", () => dialoog.close());
 
+search.addEventListener("submit", async function(submitEvent) {
+  submitEvent.preventDefault();
+  const formData = new FormData(this);
+  const search = new URLSearchParams(formData).toString();
+  const fetchData = await fetch(this.action + search);
+  const jsonData = await fetchData.json();
 
-</body>
-</html>
+  if(jsonData.length) showCm.innerHTML = "";
+  else showCm.innerHTML = "<p>No results</p>";
+  jsonData.forEach(result => {
+    const {show} = result;
+    const containerE = document.createElement("div");
+    containerE.classList.add("show");
+    const nameEl = document.createElement("h2");
+    nameEl.textContent = show.name;
+    console.log(nameEl)
+
+    const detailsEl = document.createElement("a");
+    detailsEl.href = show.url;
+    detailsEl.target = "details";
+    detailsEl.textContent = "More details";
+
+    detailsEl.addEventListener("click", () => {
+      dialoog.showModal();
+      modalTitleElem.textContent = show.name;
+    });
+
+    const img = document.createElement("img");
+    img.src = show.image?.medium ?? "./no-image.jpeg";
+
+    const genress = document.createElement("div");
+    genress.innerHTML += "<h2>Genres</h2>"
+    genress.classList.add("genres");
+    show.genres.forEach(genre => {
+      const genreElem = document.createElement("p");
+      genreElem.textContent = genre;
+      genreElem.classList.add("genre");
+      genress.appendChild(genreElem);
+    });
+
+    const summaryElem = document.createElement("div");
+    summaryElem.classList.add("summary");
+    summaryElem.innerHTML = show.summary;
+    containerE.append(nameEl, img, summaryElem, detailsEl);
+    if(show.genres?.length) img.after(genress)
+    showCm.append(containerE);
+  });
+});
